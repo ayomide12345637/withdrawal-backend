@@ -1,10 +1,14 @@
 {
-  "name": "squad-withdrawal-api",
+  "name": "withdrawal-backend",
   "version": "1.0.0",
   "main": "server.js",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
-    "axios": "^1.6.0",
-    "express": "^4.18.2"
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^3.3.1"
+  },
+  "scripts": {
+    "start": "node server.js"
   }
 }
