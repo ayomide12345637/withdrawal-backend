@@ -1,46 +1,60 @@
-const express = require("express");
-const axios = require("axios");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
+import fetch from "node-fetch";
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
+// Allow all origins (for testing)
 app.use(cors());
 app.use(express.json());
 
-const SECRET_KEY = process.env.SQUAD_SECRET_KEY;
-
-app.get("/", (req, res) => {
-    res.send("Squad Withdrawal API is running");
-});
-
+// -----------------------------
+// WITHDRAW ENDPOINT
+// -----------------------------
 app.post("/withdraw", async (req, res) => {
-  try {
-    const { bank_code, account_number, amount, narration } = req.body;
+    try {
+        const { amount, bank_code, account_number } = req.body;
 
-    const response = await axios.post(
-      "https://api.squadco.com/v1/payout/initiate",
-      {
-        bank_code,
-        account_number,
-        amount,
-        currency: "NGN",
-        narration,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${SECRET_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+        if (!amount || !bank_code || !account_number) {
+            return res.status(400).json({ error: "Missing fields" });
+        }
 
-    res.json(response.data);
-  } catch (error) {
-    console.log(error.response?.data || error);
-    res.status(500).json({ error: "Withdrawal failed" });
-  }
+        // YOUR SQUAD SECRET KEY HERE
+        const SECRET_KEY = "YOUR_SECRET_KEY_HERE";
+
+        const payload = {
+            bank_code,
+            account_number,
+            amount
+        };
+
+        const response = await fetch("https://api.squadco.com/transaction/initiate-payout", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${SECRET_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        res.json(data);
+
+    } catch (err) {
+        console.error("Error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
 });
 
-app.listen(3000, () => {
-    console.log("Server running on port 3000");
+// -----------------------------
+// TEST ENDPOINT
+// -----------------------------
+app.get("/", (req, res) => {
+    res.send("Backend is running ✔");
 });
+
+// -----------------------------
+// START SERVER
+// -----------------------------
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
